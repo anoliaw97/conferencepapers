@@ -239,61 +239,76 @@ def generate_fig5():
 
 
 # ==================================================================
-# Fig 6 – Workflow flowchart   (\columnwidth → 7.0" src)
+# Fig 6 – Workflow flowchart   (figure* full-text-width → 12" src)
+#
+# Displayed at \textwidth = 7.25" in paper.
+# Source 12" → scale 7.25/12 = 0.604 → 14 pt × 0.604 = 8.5 pt in paper ✓
 # ==================================================================
 def generate_fig6():
-    fig, ax = plt.subplots(figsize=(7.0, 2.8))
-    ax.set_xlim(0, 7.0)
-    ax.set_ylim(0, 2.8)
+    FW = 12.0          # figure source width (inches)
+    FH = 3.8           # figure source height
+    fig, ax = plt.subplots(figsize=(FW, FH))
+    ax.set_xlim(0, FW)
+    ax.set_ylim(0, FH)
     ax.axis('off')
 
+    # 6 boxes, each 1.7" wide, spaced by 0.36" gaps inside 12"
+    bw = 1.70
+    bh = 1.80
+    cy = FH / 2         # vertical centre
+
+    # evenly spaced centres
+    margin = 0.15
+    total_content = 6 * bw + 5 * 0.36
+    start = (FW - total_content) / 2 + bw / 2
+
+    cx = [start + i * (bw + 0.36) for i in range(6)]
+
     stages = [
-        (0.60, 1.40, 'PDF to\nImages\n(200 DPI)'),
-        (1.75, 1.40, 'Page\nClassify'),
-        (2.90, 1.40, 'Table\nDetect'),
-        (4.05, 1.40, 'Data\nExtract'),
-        (5.20, 1.40, 'Validate &\nStandardize'),
-        (6.35, 1.40, 'JSON/CSV\nOutput'),
+        (cx[0], cy, 'PDF to\nImages\n(200 DPI)'),
+        (cx[1], cy, 'Page\nClassification'),
+        (cx[2], cy, 'Table\nDetection'),
+        (cx[3], cy, 'Data\nExtraction'),
+        (cx[4], cy, 'Validate &\nNormalize'),
+        (cx[5], cy, 'Output\nJSON / CSV'),
     ]
 
-    bw = 1.00   # box width
-    bh = 1.10   # box height
-
-    # gradient blue palette
     face_colors = ['#E3F2FD', '#BBDEFB', '#90CAF9', '#64B5F6', '#42A5F5', '#1E88E5']
     edge_color  = '#0D47A1'
+    font_size   = 16   # 16 pt × 0.604 scale ≈ 9.7 pt in paper ✓
 
     for idx, (x, y, label) in enumerate(stages):
         # drop shadow
-        shadow = FancyBboxPatch((x - bw/2 + 0.025, y - bh/2 - 0.025),
-                                bw, bh, boxstyle='round,pad=0.05',
+        shadow = FancyBboxPatch((x - bw/2 + 0.04, y - bh/2 - 0.04),
+                                bw, bh, boxstyle='round,pad=0.08',
                                 facecolor='#BDBDBD', edgecolor='none',
-                                alpha=0.4, zorder=1)
+                                alpha=0.35, zorder=1)
         ax.add_patch(shadow)
 
         box = FancyBboxPatch((x - bw/2, y - bh/2),
-                             bw, bh, boxstyle='round,pad=0.05',
+                             bw, bh, boxstyle='round,pad=0.08',
                              facecolor=face_colors[idx],
                              edgecolor=edge_color,
-                             linewidth=2.0, zorder=2)
+                             linewidth=2.5, zorder=2)
         ax.add_patch(box)
 
-        # text – 16 pt renders to 8 pt at \columnwidth
         ax.text(x, y, label, ha='center', va='center',
-                fontsize=16, fontweight='bold', color='#0D47A1', zorder=3)
+                fontsize=font_size, fontweight='bold',
+                color='#0D47A1', zorder=3,
+                linespacing=1.3)
 
-    # arrows
+    # arrows between boxes
     for i in range(len(stages) - 1):
-        x1 = stages[i][0]   + bw/2 + 0.03
-        x2 = stages[i+1][0] - bw/2 - 0.03
-        arrow = FancyArrowPatch((x1, 1.40), (x2, 1.40),
+        x1 = stages[i][0]   + bw / 2 + 0.04
+        x2 = stages[i+1][0] - bw / 2 - 0.04
+        arrow = FancyArrowPatch((x1, cy), (x2, cy),
                                 arrowstyle='-|>',
-                                mutation_scale=18,
-                                linewidth=2.5,
+                                mutation_scale=22,
+                                linewidth=3.0,
                                 color=edge_color, zorder=1)
         ax.add_patch(arrow)
 
-    plt.tight_layout(pad=0.1)
+    plt.tight_layout(pad=0.2)
     plt.savefig('fig6_workflow.png', dpi=300,
                 bbox_inches='tight', facecolor='white')
     plt.close()
