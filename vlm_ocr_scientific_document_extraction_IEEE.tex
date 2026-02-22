@@ -41,7 +41,7 @@ a.farzamnia@hud.ac.uk}
 \maketitle
 
 \begin{abstract}
-Technical laboratory reports contain critical measurement data, yet automated extraction remains challenging due to varied layouts and specialized formatting. We evaluated four Vision Language Model architectures on 15 reports spanning 1,374 pages to address this problem. The olmOCR-2-7B model achieved optimal performance with 100\% success rate and extracted 3,778 data rows, though requiring 104 minutes per report on RTX 6000 GPU. Enhanced prompting eliminated classification errors entirely but increased processing time 7.8-fold, revealing a fundamental accuracy-efficiency tradeoff. We identified 547 distinct table structures across reports and consolidated 2,856 column variants into 147 normalized patterns, producing 16,834 machine learning-ready rows. Results demonstrate that mid-sized, domain-tuned models outperform larger generic architectures for technical document automation.
+Technical laboratory reports contain critical measurement data, yet automated extraction remains challenging due to varied layouts and specialized formatting. Four Vision Language Model architectures were evaluated on 15 reports spanning 1,374 pages. The olmOCR-2-7B model achieved optimal performance with a 100\% success rate and extracted 3,778 data rows, requiring 104 minutes per report on an RTX 6000 GPU. Enhanced prompting eliminated classification errors entirely but increased processing time 7.8-fold, revealing a fundamental accuracy-efficiency tradeoff. Analysis identified 547 distinct table structures across reports and consolidated 2,856 column variants into 147 normalized patterns, producing 16,834 machine learning-ready rows. Results demonstrate that mid-sized, domain-tuned models outperform larger generic architectures for technical document automation.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -52,25 +52,25 @@ Vision Language Models, Optical Character Recognition, Document Extraction, Scie
 
 \subsection{Background and Motivation}
 
-Laboratory reports contain valuable technical measurements that fuel scientific discovery and industrial decision-making. Research institutions and companies accumulate thousands of these reports annually, each documenting experimental results through tables, graphs, and metadata. However, these documents vary widely in structure across different laboratories, vendors, and time periods. This heterogeneity makes systematic analysis difficult.
+Laboratory reports contain valuable technical measurements that fuel scientific discovery and industrial decision-making. Research institutions and companies accumulate thousands of these reports annually, each documenting experimental results through tables, graphs and metadata. However, these documents vary widely in structure across different laboratories, vendors and time periods. This heterogeneity makes systematic analysis difficult.
 
-Manual data entry by domain experts remains the standard practice despite being slow, costly, and error-prone. A single comprehensive report can take 4-8 hours to transcribe. As archives grow into the thousands of documents, manual processing becomes impractical. Organizations need automated solutions that can handle format variations while maintaining the precision required for technical measurements.
+Manual data entry by domain experts remains the standard practice despite being slow, costly and error-prone. A single comprehensive report can take 4--8 hours to transcribe. As archives grow into the thousands of documents, manual processing becomes impractical. Organizations need automated solutions that can handle format variations while maintaining the precision required for technical measurements.
 
-Recent Vision Language Models show promise by combining computer vision with natural language understanding. Unlike traditional optical character recognition systems that require extensive preprocessing pipelines, VLMs can interpret document structure and content end-to-end. Models like GPT-4V, Qwen-VL, and specialized OCR variants demonstrate strong performance on general documents. However, their effectiveness on highly technical reports with specialized terminology and measurement precision requirements remains unclear.
+Recent Vision Language Models show promise by combining computer vision with natural language understanding. Unlike traditional optical character recognition systems that require extensive preprocessing pipelines, VLMs can interpret document structure and content end-to-end. Models like GPT-4V, Qwen-VL and specialized OCR variants demonstrate strong performance on general documents. However, their effectiveness on highly technical reports with specialized terminology and measurement precision requirements remains unclear.
 
 \subsection{Problem Statement}
 
-Three critical questions motivate this investigation. First, which VLM architectures achieve the best balance between accuracy and computational cost for technical documents? Model size, training approach, and optimization strategy all affect practical deployment. Second, how should extraction workflows be designed to maximize data quality within reasonable processing times? Simple approaches may miss critical validation, while complex prompting can become prohibitively slow. Third, what structural patterns emerge across heterogeneous reports, and how can diverse outputs be unified into consistent datasets? Format variations create integration challenges that must be systematically addressed.
+Three critical questions motivate this investigation. First, which VLM architectures achieve the best balance between accuracy and computational cost for technical documents? Model size, training approach and optimization strategy all affect practical deployment. Second, how should extraction workflows be designed to maximize data quality within reasonable processing times? Simple approaches may miss critical validation while complex prompting can become prohibitively slow. Third, what structural patterns emerge across heterogeneous reports and how can diverse outputs be unified into consistent datasets? Format variations create integration challenges that must be systematically addressed.
 
 \subsection{Research Hypothesis}
 
-We hypothesize that mid-sized VLMs with domain-specific fine-tuning will outperform both smaller generic models and larger general-purpose architectures for technical document extraction. We expect that enhanced quality control prompting will substantially improve accuracy at the cost of longer processing times. We predict that systematic consolidation can unify heterogeneous extraction outputs into structured datasets despite significant format variations. This work provides empirical evidence for VLM deployment in scientific document automation and establishes methodology for production implementation.
+Mid-sized VLMs with domain-specific fine-tuning are hypothesized to outperform both smaller generic models and larger general-purpose architectures for technical document extraction. Enhanced quality control prompting is expected to substantially improve accuracy at the cost of longer processing times. Systematic consolidation is predicted to unify heterogeneous extraction outputs into structured datasets despite significant format variations. This work provides empirical evidence for VLM deployment in scientific document automation and establishes methodology for production implementation.
 
 \section{Related Work}
 
 \subsection{Vision Language Models for Document Understanding}
 
-Vision Language Models integrate computer vision and natural language processing for end-to-end document interpretation. GPT-4V, Qwen-VL, LLaVA, and BLIP-2 leverage transformer architectures with extensive image-text pretraining \cite{carolan2024, huang2024}. These models excel at OCR, visual question answering, and table extraction \cite{bansal2025, bai2024}.
+Vision Language Models integrate computer vision and natural language processing for end-to-end document interpretation. GPT-4V, Qwen-VL, LLaVA and BLIP-2 leverage transformer architectures with extensive image-text pretraining \cite{carolan2024, huang2024}. These models excel at OCR, visual question answering and table extraction \cite{bansal2025, bai2024}.
 
 Specialized OCR models address production requirements. The olmOCR-2-7B incorporates reinforcement learning and batch optimization for English documents \cite{e2e2025}. DeepSeek-OCR uses mixture-of-experts architectures for memory efficiency. Qwen3-VL variants provide multilingual support \cite{wen2023}. Challenges persist in layout interpretation and robustness to image quality variations \cite{bansal2025, schilling2024}.
 
@@ -78,15 +78,23 @@ Specialized OCR models address production requirements. The olmOCR-2-7B incorpor
 
 Traditional scientific document extraction combines OCR engines with rule-based parsers \cite{ryu2025}. Recent materials science applications demonstrate VLM potential for tabular data extraction, though complex graphics remain problematic \cite{schilling2024}. Benchmarks like DocVQA and Omnidocbench provide standardized evaluation but focus on general documents rather than technical reports with precision requirements \cite{bai2024, li2024}. This gap motivates systematic VLM evaluation for domain-specific applications.
 
+\subsection{Representation, Domain Shift and Data Quality in Applied ML}
+
+Performance in pattern recognition depends heavily on representation choices and parameterization. In face recognition, the selection of image transform and its step-size parameters produces substantial accuracy differences \cite{dargham2010}. This principle extends directly to document extraction: the choice of image rendering resolution (DPI), page-type framing and table structure constraints all function as representation decisions that govern model performance.
+
+Domain shift is an equally critical concern in deployment. Training data selection directly determines whether a system generalizes to real-world conditions \cite{dargham2015}. In document extraction, laboratory reports vary across vendors, time periods and layout conventions. Model success therefore depends on exposure to representative layout and quality conditions. Workflow design must explicitly account for this distribution shift across page types and table styles.
+
+Data deficiency, quality constraints and representational heterogeneity are recognized as recurring bottlenecks across applied machine learning domains. In plastic waste detection, for example, dataset scarcity and color-space representation choices are identified as primary performance constraints \cite{tamin2022}. The schema consolidation task in this paper addresses an analogous bottleneck: heterogeneous column naming across historical extractions constitutes a dataset quality problem that must be resolved before downstream machine learning becomes feasible.
+
 \section{Methodology}
 
 \subsection{Dataset Description}
 
-We evaluated 15 technical laboratory reports totaling 1,374 pages. Reports originated from multiple vendors with heterogeneous formatting, containing porosity-permeability measurements, capillary pressure curves, and electrical properties. Document size ranged from 17 to 421 pages per report (median 55 pages). Content comprised metadata pages (19.2\%), data tables (50.3\%), graphs (23.2\%), and blank pages (5.8\%). Tables showed substantial diversity with 1-17 columns and varying row counts.
+Fifteen technical laboratory reports totaling 1,374 pages were evaluated. Reports originated from multiple vendors with heterogeneous formatting, containing porosity-permeability measurements, capillary pressure curves and electrical properties. Document size ranged from 17 to 421 pages per report (median 55 pages). Content comprised metadata pages (19.2\%), data tables (50.3\%), graphs (23.2\%) and blank pages (5.8\%). Tables showed substantial diversity with 1--17 columns and varying row counts.
 
 \subsection{Vision Language Models Evaluated}
 
-Four VLM architectures were compared as shown in Table~\ref{tab:models}. Qwen3-VL variants represent dense transformers with progressive parameter scaling \cite{wen2023}. The 4B variant minimizes computational requirements, the 8B balances capability and resources, and the 30B mixture-of-experts targets complex reasoning. The olmOCR-2-7B is a Qwen2.5-VL variant fine-tuned for OCR with structured output \cite{e2e2025}. All models used 200 DPI rendering for consistent input quality.
+Four VLM architectures were compared as shown in Table~\ref{tab:models}. Qwen3-VL variants represent dense transformers with progressive parameter scaling \cite{wen2023}. The 4B variant minimizes computational requirements, the 8B balances capability and resources and the 30B mixture-of-experts targets complex reasoning. The olmOCR-2-7B is a Qwen2.5-VL variant fine-tuned for OCR with structured output \cite{e2e2025}. All models used 200 DPI rendering for consistent input quality.
 
 \begin{table}[htbp]
 \caption{VLM Architectures Evaluated}
@@ -123,9 +131,9 @@ Three workflow variants optimized extraction quality and efficiency (Fig.~\ref{f
 
 \subsection{Experimental Design}
 
-\textbf{Model Comparison:} A 63-page report with 28 data tables was processed using all four architectures with identical prompts. Metrics included processing time, classification accuracy, row completeness, and GPU utilization.
+\textbf{Model Comparison:} A 63-page report with 28 data tables was processed using all four architectures with identical prompts. Metrics included processing time, classification accuracy, row completeness and GPU utilization.
 
-\textbf{Bulk Processing:} The best-performing model processed all 15 reports to evaluate production stability, success rate, and computational requirements.
+\textbf{Bulk Processing:} The best-performing model processed all 15 reports to evaluate production stability, success rate and computational requirements.
 
 \textbf{Prompt Strategy Comparison:} Baseline and quality control prompts were compared to isolate prompt engineering effects on accuracy versus cost. Manual validation quantified classification error rates.
 
@@ -133,13 +141,13 @@ Hardware included NVIDIA RTX 6000 (48 GB) for primary processing and Tesla L4 (2
 
 \subsection{Data Consolidation Methodology}
 
-Historical outputs from 94 CSV files were consolidated into unified datasets. Column names (2,856 variants) were normalized through lowercase conversion, whitespace standardization, and semantic grouping based on domain knowledge. A unified schema mapped variants to 147 standardized patterns. Rows were merged with source tracking, numeric columns detected automatically, and invalid ranges removed.
+Historical outputs from 94 CSV files were consolidated into unified datasets. Column names (2,856 variants) were normalized through lowercase conversion, whitespace standardization and semantic grouping based on domain knowledge. A unified schema mapped variants to 147 standardized patterns. Rows were merged with source tracking, numeric columns detected automatically and invalid ranges removed.
 
 \section{Results}
 
 \subsection{Model Performance Comparison}
 
-Comparing the four architectures revealed stark performance differences (Table~\ref{tab:model_comparison}, Fig.~\ref{fig:model_performance}). The olmOCR-2-7B model completed processing in just 36 minutes while extracting all 160 ground truth rows. In contrast, the Qwen3-VL-4B took 81 minutes but captured only 76 rows due to excessive hallucination. The 30B model exceeded 3 hours before termination, proving impractical despite its theoretical advantages. These results position olmOCR as the clear winner for production deployment.
+The four architectures revealed stark performance differences (Table~\ref{tab:model_comparison}, Fig.~\ref{fig:model_performance}). The olmOCR-2-7B model completed processing in 36 minutes while extracting all 160 ground truth rows. The Qwen3-VL-4B took 81 minutes but captured only 76 rows due to excessive hallucination. The 30B model exceeded 3 hours before termination, proving impractical despite its theoretical advantages. These results position olmOCR as the clear choice for production deployment.
 
 \begin{table}[htbp]
 \caption{Model Performance on 63-Page Test Report}
@@ -191,7 +199,7 @@ Success rate & 100\% \\
 \end{center}
 \end{table}
 
-Page type distribution across all documents (Fig.~\ref{fig:page_distribution}) confirmed that data tables dominate at 50.3\%, validating our focus on table extraction. GPU memory remained stable at 15.45 GB throughout, enabling concurrent processing on high-capacity hardware.
+Page type distribution across all documents (Fig.~\ref{fig:page_distribution}) confirmed that data tables dominate at 50.3\%, validating the focus on table extraction. GPU memory remained stable at 15.45 GB throughout, enabling concurrent processing on high-capacity hardware.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.8\columnwidth]{fig2_page_distribution.png}}
@@ -239,7 +247,7 @@ This fundamental tradeoff requires careful consideration for production deployme
 
 \subsection{Structural Analysis}
 
-General extraction without classification assumptions revealed remarkable diversity (Table~\ref{tab:general_extraction}). We identified 547 distinct table structures with 1-17 columns and varying semantic categories. This heterogeneity confirms that universal extraction strategies cannot optimize across all table types. Domain-specific approaches targeting known structures achieve superior results.
+General extraction without classification assumptions revealed remarkable diversity (Table~\ref{tab:general_extraction}). A total of 547 distinct table structures with 1--17 columns and varying semantic categories were identified. This heterogeneity confirms that universal extraction strategies cannot optimize across all table types. Domain-specific approaches targeting known structures achieve superior results.
 
 \begin{table}[htbp]
 \caption{General Extraction Structural Analysis}
@@ -261,7 +269,7 @@ Processing time & 1,020 min \\
 
 \subsection{Data Consolidation Outcomes}
 
-Consolidating historical extractions produced unified machine learning-ready datasets (Table~\ref{tab:consolidation}). Processing 94 CSV files reduced 2,856 column name variants to 147 normalized patterns through systematic text processing and semantic grouping (Fig.~\ref{fig:consolidation}). The final dataset contained 16,834 rows after removing 110 duplicates.
+Consolidating historical extractions produced unified machine learning-ready datasets (Table~\ref{tab:consolidation}). Processing 94 CSV files reduced 2,856 column name variants to 147 normalized patterns through systematic text processing and semantic grouping (Fig.~\ref{fig:consolidation}). The final dataset contained 16,834 rows after 110 duplicates were removed.
 
 \begin{table}[htbp]
 \caption{Data Consolidation Results}
@@ -288,7 +296,7 @@ Duplicates removed & 110 \\
 \label{fig:consolidation}
 \end{figure}
 
-While deterministic text processing handled syntactic variations, semantic variants required domain knowledge. Abbreviations like "CPOR", "He Porosity", and "Phi\_He" all represent identical measurements but need expert mapping to unify correctly.
+While deterministic text processing handled syntactic variations, semantic variants required domain knowledge. Abbreviations such as ``CPOR'', ``He Porosity'' and ``Phi\_He'' all represent identical measurements but require expert mapping to unify correctly.
 
 \section{Discussion}
 
@@ -308,47 +316,47 @@ The 7.8-fold runtime increase from quality control prompting quantifies a fundam
 
 \textbf{High-throughput mode} uses simplified prompts targeting known structures, sacrificing generality for speed in reconnaissance-level extraction.
 
-Strategy selection depends on downstream error sensitivity, computational resources, and labor costs for validation.
+Strategy selection depends on downstream error sensitivity, computational resources and labor costs for validation.
 
 \subsection{Implications of Format Heterogeneity}
 
-Identifying 547 distinct table structures across just 15 reports demonstrates substantial format diversity stemming from different vendors, evolving standards, and sample-specific customization. This validates focusing on use-case-driven extraction rather than universal approaches.
+Identifying 547 distinct table structures across 15 reports demonstrates substantial format diversity stemming from different vendors, evolving standards and sample-specific customization. This validates focusing on use-case-driven extraction rather than universal approaches. As shown for training data selection in vision systems \cite{dargham2015}, the distribution of layout types seen during development directly determines real-world generalization.
 
-Target applications typically need only 2-3 specific table types per report. Focused workflows achieve superior accuracy with reduced cost compared to general extraction. Production systems should classify table types first, then route to specialized extraction prompts optimized for specific structures.
+Target applications typically need only two or three specific table types per report. Focused workflows achieve superior accuracy with reduced cost compared to general extraction. Production systems should classify table types first and then route to specialized extraction prompts optimized for specific structures.
 
 \subsection{Consolidation Challenges}
 
-Reducing 2,856 column variants to 147 patterns reveals substantial naming inconsistency. Beyond syntactic variations, semantic variants require domain knowledge. Abbreviation expansion, unit standardization, and property synonyms all need expert knowledge or comprehensive ontologies.
+Reducing 2,856 column variants to 147 patterns reveals substantial naming inconsistency. Beyond syntactic variations, semantic variants require domain knowledge. Abbreviation expansion, unit standardization and property synonyms all need expert knowledge or comprehensive ontologies. This mirrors the representation challenge noted in applied ML: just as color-space choices constrain plastic waste detection performance \cite{tamin2022}, column naming heterogeneity constrains downstream ML readiness.
 
 The 1.6\% overlap between historical and PDF extractions indicates largely non-overlapping sources, constraining validation coverage. Future work should construct validation datasets with manual annotation across representative samples.
 
 \subsection{Computational Feasibility at Scale}
 
-The 26-hour processing time for 15 reports establishes baseline computational requirements. Scaling to institutional archives requires parallel processing infrastructure, efficient job scheduling, and incremental processing capabilities. Stable 15.45 GB VRAM utilization enables concurrent execution on high-capacity GPUs. Four NVIDIA A100 GPUs (80 GB each) could process 100 reports in 12 hours with proper load balancing.
+The 26-hour processing time for 15 reports establishes baseline computational requirements. Scaling to institutional archives requires parallel processing infrastructure, efficient job scheduling and incremental processing capabilities. Stable 15.45 GB VRAM utilization enables concurrent execution on high-capacity GPUs. Four NVIDIA A100 GPUs (80 GB each) could process 100 reports in 12 hours with proper load balancing.
 
 \subsection{Comparison with Manual Extraction}
 
-Industry experience indicates manual transcription requires 4-8 hours per report \cite{schilling2024}. Our automated system averages 1.7 hours per report, representing 2.4-4.7× speed improvement. However, this excludes downstream validation time. The crossover point where automated extraction plus validation beats pure manual transcription appears around 10-15 report batches where setup costs amortize.
+Industry experience indicates manual transcription requires 4--8 hours per report \cite{schilling2024}. The automated system averages 1.7 hours per report, representing a 2.4--4.7$\times$ speed improvement. However, this excludes downstream validation time. The crossover point where automated extraction plus validation beats pure manual transcription appears around 10-15 report batches where setup costs amortize.
 
 \subsection{Limitations and Future Directions}
 
 Several constraints limit generalizability. The 15-report dataset may not fully represent global documentation variations across domains and time periods. Focus on English leaves multilingual performance unvalidated despite theoretical multilingual capabilities \cite{wen2023}. VLM architectures evolve rapidly, potentially altering performance characteristics. Manual validation covered representative samples but comprehensive ground truth for all 3,778 rows was not established.
 
-Future research should explore hybrid workflows combining rapid general extraction with targeted high-accuracy extraction for critical fields. Active learning leveraging human corrections can fine-tune models for domain-specific layouts. Multimodal validation incorporating graph analysis can cross-validate tabular data against plots. Distributed processing frameworks enable production-scale throughput.
+Future research should explore hybrid workflows combining rapid general extraction with targeted high-accuracy extraction for critical fields. Active learning leveraging human corrections can fine-tune models for domain-specific layouts. Multimodal validation incorporating graph analysis can cross-validate tabular data against plots. Distributed processing frameworks enable production-scale throughput. Representation sensitivity analysis, analogous to step-size parameter studies in classical vision \cite{dargham2010}, should be conducted for DPI and prompt structure choices.
 
 \section{Conclusion}
 
-This investigation demonstrates technical viability of VLM-based automation for scientific document extraction while revealing critical tradeoffs. The olmOCR-2-7B architecture achieved 100\% processing success across 15 heterogeneous reports, extracting 3,778 data rows in 104 minutes per document average. Quality control prompting eliminated classification errors entirely at 7.8× computational cost, quantifying the fundamental accuracy-efficiency tension.
+This study demonstrates the technical viability of VLM-based automation for scientific document extraction while revealing critical tradeoffs. The olmOCR-2-7B architecture achieved 100\% processing success across 15 heterogeneous reports, extracting 3,778 data rows at an average of 104 minutes per document. Quality control prompting eliminated classification errors entirely at 7.8$\times$ computational cost, quantifying the fundamental accuracy-efficiency tension.
 
-We identified 547 distinct table structures, validating use-case-driven extraction over universal approaches. Consolidation produced machine learning-ready datasets with 16,834 rows by mapping 2,856 column variants to 147 normalized patterns through systematic schema discovery.
+A total of 547 distinct table structures were identified, validating use-case-driven extraction over universal approaches. Consolidation produced machine learning-ready datasets with 16,834 rows by mapping 2,856 column variants to 147 normalized patterns through systematic schema discovery.
 
-Key findings for practitioners: prioritize mid-sized architectures (7-8B parameters) with domain-specific fine-tuning over generic large models; align prompt complexity with accuracy requirements and computational constraints; incorporate domain knowledge for semantic unification beyond syntactic normalization.
+Key findings for practitioners: mid-sized architectures (7--8B parameters) with domain-specific fine-tuning should be prioritized over generic large models; prompt complexity must be aligned with accuracy requirements and computational constraints; domain knowledge is necessary for semantic unification beyond syntactic normalization.
 
-Future work should explore hybrid human-machine workflows, active learning for continuous improvement, and distributed processing for institutional-scale deployment. This methodology provides foundation for intelligent document processing in scientific and technical domains.
+Future work should explore hybrid human-machine workflows, active learning for continuous improvement and distributed processing for institutional-scale deployment. This methodology provides a foundation for intelligent document processing in scientific and technical domains.
 
 \section*{Acknowledgment}
 
-This research was conducted at the Faculty of Computing and Informatics, Universiti Malaysia Sabah. The authors thank laboratory personnel for providing access to technical report archives.
+This work was funded by PETRONAS Research Sdn. Bhd. under the PETRONAS-ACADEMIA COLLABORATION DIALOGUE 2023 grant. This research was conducted at the Faculty of Computing and Informatics, Universiti Malaysia Sabah. The authors thank laboratory personnel for providing access to technical report archives.
 
 \begin{thebibliography}{20}
 
@@ -411,6 +419,15 @@ M. Raiaan, M. Mukta, K. Fatema, N. Fahad, S. Sakib, M. Mim, J. Ahmad, M. Ali, an
 
 \bibitem{qu2024}
 C. Qu, S. Dai, X. Wei, H. Cai, S. Wang, D. Yin, J. Xu, and J. Wen, ``Tool Learning with Large Language Models: A Survey,'' \textit{Front. Comput. Sci.}, vol. 19, 2024.
+
+\bibitem{tamin2022}
+O. Tamin, E. G. Moung, J. A. Dargham, F. Yahya, S. Omatu, and L. Angeline, ``Machine Learning for Plastic Waste Detection: State-of-the-art, Challenges, and Solutions,'' in \textit{Proc. Int. Conf. Communications, Information, Electronic and Energy Systems (CIEES)}, Veliko Tarnovo, Bulgaria, 2022, pp. 1--6, doi: 10.1109/CIEES55704.2022.9990703.
+
+\bibitem{dargham2015}
+J. A. Dargham, A. Chekima, E. G. Moung, and S. Omatu, ``The Effect of Training Data Selection on Face Recognition in Surveillance Application,'' in \textit{Distributed Computing and Artificial Intelligence, 12th Int. Conf.}, Advances in Intelligent Systems and Computing, vol. 373. Springer, Cham, 2015, pp. 223--230, doi: 10.1007/978-3-319-19638-1\_26.
+
+\bibitem{dargham2010}
+J. A. Dargham, A. Chekima, and E. G. Moung, ``Radon transform for face recognition,'' \textit{Artif. Life Robotics}, vol. 15, pp. 359--362, 2010, doi: 10.1007/s10015-010-0827-2.
 
 \end{thebibliography}
 

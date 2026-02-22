@@ -1,367 +1,312 @@
 #!/usr/bin/env python3
 """
-Generate PROFESSIONAL IEEE-quality figures with dramatic visual improvements
-- Large, readable fonts (18-22pt)
-- Professional color schemes
-- Thick borders and lines
-- Optimal sizing for publication
-- Clean, modern design
+Generate IEEE-ready figures sized for correct column width rendering.
+
+IEEE single column = 3.5 inches. All source figures are saved at 2x print
+size so fonts at 16pt render to exactly 8pt in the final PDF.
+
+  - 0.8\\columnwidth display (2.8"): source figsize width = 5.6"
+  - \\columnwidth display  (3.5"): source figsize width = 7.0"
+
+Font sizes used:
+  - axis labels / text labels: 16 pt  → 8 pt in paper
+  - tick labels              : 14 pt  → 7 pt in paper (acceptable)
+  - value annotations        : 14 pt  → 7 pt in paper
 """
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import numpy as np
 import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Rectangle, Circle
-import matplotlib as mpl
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Rectangle
+import numpy as np
 
-# Professional IEEE style settings
-plt.style.use('seaborn-v0_8-darkgrid')
-mpl.rcParams['font.family'] = 'sans-serif'
-mpl.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Helvetica']
-mpl.rcParams['font.size'] = 18
-mpl.rcParams['axes.labelsize'] = 22
-mpl.rcParams['axes.titlesize'] = 24
-mpl.rcParams['xtick.labelsize'] = 18
-mpl.rcParams['ytick.labelsize'] = 18
-mpl.rcParams['legend.fontsize'] = 16
-mpl.rcParams['axes.linewidth'] = 2.5
-mpl.rcParams['grid.alpha'] = 0.25
-mpl.rcParams['grid.linewidth'] = 1.0
-mpl.rcParams['lines.linewidth'] = 3.0
+# ------------------------------------------------------------------
+# Global rcParams – tuned for 2x-scale IEEE figures
+# ------------------------------------------------------------------
+plt.rcParams.update({
+    'font.family'       : 'sans-serif',
+    'font.sans-serif'   : ['DejaVu Sans', 'Arial', 'Helvetica'],
+    'font.size'         : 16,          # base – renders ~8 pt in paper
+    'axes.labelsize'    : 16,
+    'axes.titlesize'    : 16,
+    'xtick.labelsize'   : 14,
+    'ytick.labelsize'   : 14,
+    'legend.fontsize'   : 14,
+    'axes.linewidth'    : 1.5,
+    'grid.alpha'        : 0.3,
+    'grid.linewidth'    : 0.8,
+    'lines.linewidth'   : 2.0,
+})
 
-# Professional color palette
-COLORS = {
-    'red': '#E53935',
-    'blue': '#1E88E5',
-    'orange': '#FB8C00',
-    'green': '#43A047',
-    'purple': '#8E24AA',
-    'teal': '#00897B',
-    'pink': '#D81B60',
-    'indigo': '#3949AB',
-    'lime': '#7CB342',
-    'cyan': '#00ACC1'
-}
+BLUE    = '#1E88E5'
+RED     = '#E53935'
+ORANGE  = '#FB8C00'
+GREEN   = '#43A047'
+GREY    = '#757575'
 
-# Figure 1: Model Performance Trade-off with LEGEND
+# ==================================================================
+# Fig 1 – Model performance bubble chart   (0.8\columnwidth → 5.6" src)
+# ==================================================================
 def generate_fig1():
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(5.6, 4.0))
 
-    # Data: (Processing Time, Quality Score, Model Size)
     models = {
-        'olmOCR-7B': (36, 95, 7000, COLORS['red']),
-        '4B': (81, 60, 4000, COLORS['blue']),
-        '8B': (150, 75, 8000, COLORS['orange']),
-        '30B-MoE': (300, 85, 30000, COLORS['green'])
+        'olmOCR-7B': (36,  95,  7000, RED),
+        '4B'       : (81,  60,  4000, BLUE),
+        '8B'       : (150, 75,  8000, ORANGE),
+        '30B-MoE'  : (300, 85, 30000, GREEN),
     }
 
-    # Plot each model
-    for name, (time, quality, size, color) in models.items():
-        bubble_size = (size / 30) * 3  # Larger bubbles
-        ax.scatter(time, quality, s=bubble_size, c=color, alpha=0.75,
-                  edgecolors='black', linewidth=3.0, zorder=3, label=name)
+    for name, (t, q, sz, c) in models.items():
+        ax.scatter(t, q, s=sz / 60, c=c, alpha=0.75,
+                   edgecolors='black', linewidth=1.5, zorder=3, label=name)
 
-    ax.set_xlabel('Processing Time (minutes)', fontweight='bold', labelpad=10)
-    ax.set_ylabel('Extraction Quality Score (%)', fontweight='bold', labelpad=10)
-    ax.grid(True, alpha=0.3, linestyle='--', zorder=1, linewidth=1.5)
+    ax.set_xlabel('Processing Time (min)', fontweight='bold')
+    ax.set_ylabel('Quality Score (%)', fontweight='bold')
     ax.set_xlim(-10, 330)
     ax.set_ylim(55, 100)
-
-    ax.set_xticks([0, 50, 100, 150, 200, 250, 300])
+    ax.set_xticks([0, 100, 200, 300])
     ax.set_yticks([60, 70, 80, 90, 100])
-
-    # Add legend
-    ax.legend(loc='lower right', frameon=True, fancybox=True, shadow=True,
-             framealpha=0.95, edgecolor='black', facecolor='white')
-
-    # Thicker spines
-    for spine in ax.spines.values():
-        spine.set_linewidth(2.5)
+    ax.grid(True, linestyle='--', zorder=1)
+    ax.legend(loc='lower right', frameon=True, framealpha=0.9,
+              edgecolor='black', handlelength=1.0, handletextpad=0.4)
+    for sp in ax.spines.values():
+        sp.set_linewidth(1.5)
 
     plt.tight_layout()
-    plt.savefig('fig1_model_performance.png', dpi=300, bbox_inches='tight',
-                facecolor='white', edgecolor='none')
+    plt.savefig('fig1_model_performance.png', dpi=300,
+                bbox_inches='tight', facecolor='white')
     plt.close()
-    print("✓ Generated fig1_model_performance.png")
+    print("✓ fig1_model_performance.png")
 
-# Figure 2: Page Distribution with VALUE LABELS
+
+# ==================================================================
+# Fig 2 – Page distribution bar chart   (0.8\columnwidth → 5.6" src)
+# ==================================================================
 def generate_fig2():
-    fig, ax = plt.subplots(figsize=(12, 7))
+    fig, ax = plt.subplots(figsize=(5.6, 3.5))
 
-    categories = ['Data Tables', 'Graphs', 'Metadata', 'Blank/Irrelevant']
+    cats   = ['Data Tables', 'Graphs', 'Metadata', 'Blank/Irrelevant']
     counts = [691, 319, 264, 79]
-    colors = [COLORS['green'], COLORS['blue'], COLORS['orange'], '#9E9E9E']
+    colors = [GREEN, BLUE, ORANGE, GREY]
 
-    y_pos = np.arange(len(categories))
+    y = np.arange(len(cats))
+    bars = ax.barh(y, counts, color=colors, edgecolor='black',
+                   linewidth=1.2, height=0.6)
 
-    bars = ax.barh(y_pos, counts, color=colors, edgecolor='black',
-                   linewidth=2.5, height=0.65)
+    for bar, cnt in zip(bars, counts):
+        ax.text(bar.get_width() + 12, bar.get_y() + bar.get_height() / 2,
+                str(cnt), va='center', fontsize=13, fontweight='bold')
 
-    # Add value labels on bars
-    for i, (bar, count) in enumerate(zip(bars, counts)):
-        width = bar.get_width()
-        ax.text(width + 20, bar.get_y() + bar.get_height()/2,
-               f'{count}', ha='left', va='center', fontsize=18, fontweight='bold')
-
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels(categories, fontsize=20, fontweight='bold')
-    ax.set_xlabel('Number of Pages', fontweight='bold', labelpad=10)
-    ax.grid(axis='x', alpha=0.3, linestyle='--', zorder=0, linewidth=1.5)
-    ax.set_xlim(0, 800)
+    ax.set_yticks(y)
+    ax.set_yticklabels(cats, fontsize=14)
+    ax.set_xlabel('Number of Pages', fontweight='bold')
+    ax.set_xlim(0, 780)
+    ax.set_xticks([0, 200, 400, 600])
+    ax.grid(axis='x', linestyle='--', zorder=0)
     ax.set_axisbelow(True)
-    ax.set_xticks([0, 100, 200, 300, 400, 500, 600, 700])
-
-    for spine in ax.spines.values():
-        spine.set_linewidth(2.5)
+    for sp in ax.spines.values():
+        sp.set_linewidth(1.5)
 
     plt.tight_layout()
-    plt.savefig('fig2_page_distribution.png', dpi=300, bbox_inches='tight',
-                facecolor='white', edgecolor='none')
+    plt.savefig('fig2_page_distribution.png', dpi=300,
+                bbox_inches='tight', facecolor='white')
     plt.close()
-    print("✓ Generated fig2_page_distribution.png")
+    print("✓ fig2_page_distribution.png")
 
-# Figure 3: Prompt Comparison with VALUE LABELS
+
+# ==================================================================
+# Fig 3 – Prompt comparison dual bar   (\columnwidth → 7.0" src)
+# ==================================================================
 def generate_fig3():
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.0, 3.8))
 
-    categories = ['Baseline', 'QC-Enhanced']
+    cats = ['Baseline', 'QC-Enhanced']
 
-    # Processing Time
-    times = [36, 280]
-    colors_time = [COLORS['blue'], COLORS['red']]
-
-    bars1 = ax1.bar(categories, times, color=colors_time, edgecolor='black',
-                    linewidth=2.5, width=0.55)
-
-    # Add value labels
-    for bar in bars1:
-        height = bar.get_height()
-        ax1.text(bar.get_x() + bar.get_width()/2, height + 10,
-                f'{int(height)}', ha='center', va='bottom',
-                fontsize=18, fontweight='bold')
-
-    ax1.set_ylabel('Processing Time (minutes)', fontweight='bold', labelpad=10)
-    ax1.grid(axis='y', alpha=0.3, linestyle='--', zorder=0, linewidth=1.5)
+    # Left: processing time
+    vals1  = [36, 280]
+    cols1  = [BLUE, RED]
+    bars1  = ax1.bar(cats, vals1, color=cols1, edgecolor='black',
+                     linewidth=1.2, width=0.5)
+    for b in bars1:
+        ax1.text(b.get_x() + b.get_width() / 2, b.get_height() + 8,
+                 str(int(b.get_height())),
+                 ha='center', fontsize=13, fontweight='bold')
+    ax1.set_ylabel('Processing Time (min)', fontweight='bold')
     ax1.set_ylim(0, 320)
+    ax1.grid(axis='y', linestyle='--', zorder=0)
     ax1.set_axisbelow(True)
-    ax1.tick_params(axis='x', labelsize=20)
+    ax1.tick_params(axis='x', labelsize=14)
+    for sp in ax1.spines.values():
+        sp.set_linewidth(1.5)
 
-    # Classification Error Rate
-    error_rates = [43, 0]
-    colors_error = [COLORS['red'], COLORS['green']]
-
-    bars2 = ax2.bar(categories, error_rates, color=colors_error, edgecolor='black',
-                    linewidth=2.5, width=0.55)
-
-    # Add value labels
-    for bar in bars2:
-        height = bar.get_height()
-        if height > 0:
-            ax2.text(bar.get_x() + bar.get_width()/2, height + 2,
-                    f'{int(height)}%', ha='center', va='bottom',
-                    fontsize=18, fontweight='bold')
-        else:
-            ax2.text(bar.get_x() + bar.get_width()/2, 2,
-                    '0%', ha='center', va='bottom',
-                    fontsize=18, fontweight='bold')
-
-    ax2.set_ylabel('Classification Error Rate (%)', fontweight='bold', labelpad=10)
-    ax2.grid(axis='y', alpha=0.3, linestyle='--', zorder=0, linewidth=1.5)
+    # Right: error rate
+    vals2 = [43, 0]
+    cols2 = [RED, GREEN]
+    bars2 = ax2.bar(cats, vals2, color=cols2, edgecolor='black',
+                    linewidth=1.2, width=0.5)
+    for b in bars2:
+        h = b.get_height()
+        label = f'{int(h)}%'
+        y_pos = h + 1.5 if h > 0 else 1.5
+        ax2.text(b.get_x() + b.get_width() / 2, y_pos,
+                 label, ha='center', fontsize=13, fontweight='bold')
+    ax2.set_ylabel('Classification Error Rate (%)', fontweight='bold')
     ax2.set_ylim(0, 52)
+    ax2.grid(axis='y', linestyle='--', zorder=0)
     ax2.set_axisbelow(True)
-    ax2.tick_params(axis='x', labelsize=20)
-
-    for ax in [ax1, ax2]:
-        for spine in ax.spines.values():
-            spine.set_linewidth(2.5)
+    ax2.tick_params(axis='x', labelsize=14)
+    for sp in ax2.spines.values():
+        sp.set_linewidth(1.5)
 
     plt.tight_layout()
-    plt.savefig('fig3_prompt_comparison.png', dpi=300, bbox_inches='tight',
-                facecolor='white', edgecolor='none')
+    plt.savefig('fig3_prompt_comparison.png', dpi=300,
+                bbox_inches='tight', facecolor='white')
     plt.close()
-    print("✓ Generated fig3_prompt_comparison.png")
+    print("✓ fig3_prompt_comparison.png")
 
-# Figure 4: Consolidation Funnel with VALUE LABELS
+
+# ==================================================================
+# Fig 4 – Consolidation funnel bar chart   (0.8\columnwidth → 5.6" src)
+# ==================================================================
 def generate_fig4():
-    fig, ax = plt.subplots(figsize=(12, 7))
+    fig, ax = plt.subplots(figsize=(5.6, 3.5))
 
-    stages = ['Raw Column\nVariants', 'After Text\nNormalization',
-              'Semantic\nGrouping', 'Final ML\nSchema']
+    stages = ['Raw Variants', 'Text Norm.', 'Semantic Group.', 'Final Schema']
     counts = [2856, 875, 318, 147]
     colors = ['#EF9A9A', '#FFB74D', '#64B5F6', '#81C784']
 
-    y_pos = np.arange(len(stages))
+    y = np.arange(len(stages))
+    bars = ax.barh(y, counts, color=colors, edgecolor='black',
+                   linewidth=1.2, height=0.6)
 
-    bars = ax.barh(y_pos, counts, color=colors, edgecolor='black',
-                   linewidth=2.5, height=0.65)
+    for bar, cnt in zip(bars, counts):
+        ax.text(bar.get_width() + 50, bar.get_y() + bar.get_height() / 2,
+                str(cnt), va='center', fontsize=13, fontweight='bold')
 
-    # Add value labels
-    for i, (bar, count) in enumerate(zip(bars, counts)):
-        width = bar.get_width()
-        ax.text(width + 80, bar.get_y() + bar.get_height()/2,
-               f'{count}', ha='left', va='center', fontsize=18, fontweight='bold')
-
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels(stages, fontsize=19, fontweight='bold')
-    ax.set_xlabel('Number of Column Patterns', fontweight='bold', labelpad=10)
-    ax.grid(axis='x', alpha=0.3, linestyle='--', zorder=0, linewidth=1.5)
-    ax.set_xlim(0, 3200)
+    ax.set_yticks(y)
+    ax.set_yticklabels(stages, fontsize=14)
+    ax.set_xlabel('Number of Column Patterns', fontweight='bold')
+    ax.set_xlim(0, 3300)
+    ax.set_xticks([0, 1000, 2000, 3000])
+    ax.grid(axis='x', linestyle='--', zorder=0)
     ax.set_axisbelow(True)
-    ax.set_xticks([0, 500, 1000, 1500, 2000, 2500, 3000])
-
-    for spine in ax.spines.values():
-        spine.set_linewidth(2.5)
+    for sp in ax.spines.values():
+        sp.set_linewidth(1.5)
 
     plt.tight_layout()
-    plt.savefig('fig4_consolidation.png', dpi=300, bbox_inches='tight',
-                facecolor='white', edgecolor='none')
+    plt.savefig('fig4_consolidation.png', dpi=300,
+                bbox_inches='tight', facecolor='white')
     plt.close()
-    print("✓ Generated fig4_consolidation.png")
+    print("✓ fig4_consolidation.png")
 
-# Figure 5: Scalability with REGRESSION EQUATION
+
+# ==================================================================
+# Fig 5 – Scalability scatter + regression   (0.8\columnwidth → 5.6" src)
+# ==================================================================
 def generate_fig5():
-    fig, ax = plt.subplots(figsize=(11, 8))
+    fig, ax = plt.subplots(figsize=(5.6, 4.0))
 
-    doc_sizes = np.array([17, 23, 28, 35, 42, 46, 55, 63, 189, 421])
+    doc_sizes  = np.array([17, 23, 28, 35, 42, 46, 55, 63, 189, 421])
     proc_times = np.array([6.7, 12, 18, 25, 35, 40, 50, 36, 295, 874])
 
-    # Linear regression
     coeffs = np.polyfit(doc_sizes, proc_times, 1)
-    poly = np.poly1d(coeffs)
-    x_line = np.linspace(0, 450, 100)
-    y_line = poly(x_line)
+    poly   = np.poly1d(coeffs)
+    x_line = np.linspace(0, 440, 200)
 
-    # Plot regression line with equation
-    ax.plot(x_line, y_line, 'r--', linewidth=4, alpha=0.8, zorder=2,
-            label=f'y = {coeffs[0]:.2f}x + {coeffs[1]:.1f}')
+    ax.plot(x_line, poly(x_line), 'r--', linewidth=2.5, alpha=0.85, zorder=2,
+            label=f'y = {coeffs[0]:.2f}x {coeffs[1]:+.1f}')
+    ax.scatter(doc_sizes, proc_times, s=60, c=BLUE, alpha=0.85,
+               edgecolors='black', linewidth=1.2, zorder=3)
 
-    # Plot scatter points
-    ax.scatter(doc_sizes, proc_times, s=300, c=COLORS['blue'], alpha=0.8,
-              edgecolors='black', linewidth=2.5, zorder=3)
-
-    ax.set_xlabel('Document Size (pages)', fontweight='bold', labelpad=10)
-    ax.set_ylabel('Processing Time (minutes)', fontweight='bold', labelpad=10)
-    ax.grid(True, alpha=0.3, linestyle='--', zorder=1, linewidth=1.5)
-    ax.set_xlim(-20, 460)
+    ax.set_xlabel('Document Size (pages)', fontweight='bold')
+    ax.set_ylabel('Processing Time (min)', fontweight='bold')
+    ax.set_xlim(-10, 450)
     ax.set_ylim(-50, 950)
-
     ax.set_xticks([0, 100, 200, 300, 400])
     ax.set_yticks([0, 200, 400, 600, 800])
-
-    # Add legend with equation
-    ax.legend(loc='upper left', frameon=True, fancybox=True, shadow=True,
-             framealpha=0.95, edgecolor='black', facecolor='white', fontsize=18)
-
-    for spine in ax.spines.values():
-        spine.set_linewidth(2.5)
+    ax.grid(True, linestyle='--', zorder=1)
+    ax.legend(loc='upper left', frameon=True, framealpha=0.9, edgecolor='black')
+    for sp in ax.spines.values():
+        sp.set_linewidth(1.5)
 
     plt.tight_layout()
-    plt.savefig('fig5_scalability.png', dpi=300, bbox_inches='tight',
-                facecolor='white', edgecolor='none')
+    plt.savefig('fig5_scalability.png', dpi=300,
+                bbox_inches='tight', facecolor='white')
     plt.close()
-    print("✓ Generated fig5_scalability.png")
+    print("✓ fig5_scalability.png")
 
-# Figure 6: PROFESSIONAL FLOWCHART with shadows and gradients
+
+# ==================================================================
+# Fig 6 – Workflow flowchart   (\columnwidth → 7.0" src)
+# ==================================================================
 def generate_fig6():
-    fig, ax = plt.subplots(figsize=(18, 6))
-
-    ax.set_xlim(0, 18)
-    ax.set_ylim(0, 6)
+    fig, ax = plt.subplots(figsize=(7.0, 2.8))
+    ax.set_xlim(0, 7.0)
+    ax.set_ylim(0, 2.8)
     ax.axis('off')
 
-    # Define stages
     stages = [
-        (1.8, 3.0, 'PDF to\nImages\n(200 DPI)'),
-        (4.5, 3.0, 'Page\nClassification'),
-        (7.2, 3.0, 'Table\nDetection'),
-        (9.9, 3.0, 'Data\nExtraction'),
-        (12.6, 3.0, 'Validation &\nStandardization'),
-        (15.3, 3.0, 'JSON/CSV\nOutput')
+        (0.60, 1.40, 'PDF to\nImages\n(200 DPI)'),
+        (1.75, 1.40, 'Page\nClassify'),
+        (2.90, 1.40, 'Table\nDetect'),
+        (4.05, 1.40, 'Data\nExtract'),
+        (5.20, 1.40, 'Validate &\nStandardize'),
+        (6.35, 1.40, 'JSON/CSV\nOutput'),
     ]
 
-    box_width = 2.4
-    box_height = 2.0
+    bw = 1.00   # box width
+    bh = 1.10   # box height
 
-    # Professional gradient color scheme
-    colors = ['#E3F2FD', '#BBDEFB', '#90CAF9', '#64B5F6', '#42A5F5', '#1E88E5']
+    # gradient blue palette
+    face_colors = ['#E3F2FD', '#BBDEFB', '#90CAF9', '#64B5F6', '#42A5F5', '#1E88E5']
+    edge_color  = '#0D47A1'
 
-    # Draw boxes with shadows
     for idx, (x, y, label) in enumerate(stages):
-        # Shadow
-        shadow = FancyBboxPatch(
-            (x - box_width/2 + 0.05, y - box_height/2 - 0.05),
-            box_width, box_height,
-            boxstyle="round,pad=0.1",
-            edgecolor='none',
-            facecolor='gray',
-            alpha=0.3,
-            zorder=1
-        )
+        # drop shadow
+        shadow = FancyBboxPatch((x - bw/2 + 0.025, y - bh/2 - 0.025),
+                                bw, bh, boxstyle='round,pad=0.05',
+                                facecolor='#BDBDBD', edgecolor='none',
+                                alpha=0.4, zorder=1)
         ax.add_patch(shadow)
 
-        # Main box
-        box = FancyBboxPatch(
-            (x - box_width/2, y - box_height/2),
-            box_width, box_height,
-            boxstyle="round,pad=0.1",
-            edgecolor='#0D47A1',
-            facecolor=colors[idx],
-            linewidth=3.5,
-            zorder=2
-        )
+        box = FancyBboxPatch((x - bw/2, y - bh/2),
+                             bw, bh, boxstyle='round,pad=0.05',
+                             facecolor=face_colors[idx],
+                             edgecolor=edge_color,
+                             linewidth=2.0, zorder=2)
         ax.add_patch(box)
 
-        # Text
+        # text – 16 pt renders to 8 pt at \columnwidth
         ax.text(x, y, label, ha='center', va='center',
-               fontsize=16, fontweight='bold', color='#0D47A1', zorder=3)
+                fontsize=16, fontweight='bold', color='#0D47A1', zorder=3)
 
-    # Draw professional arrows
-    arrow_y = 3.0
+    # arrows
     for i in range(len(stages) - 1):
-        x1 = stages[i][0] + box_width/2 + 0.1
-        x2 = stages[i+1][0] - box_width/2 - 0.1
-
-        arrow = FancyArrowPatch(
-            (x1, arrow_y), (x2, arrow_y),
-            arrowstyle='-|>',
-            mutation_scale=35,
-            linewidth=4.0,
-            color='#0D47A1',
-            zorder=1
-        )
+        x1 = stages[i][0]   + bw/2 + 0.03
+        x2 = stages[i+1][0] - bw/2 - 0.03
+        arrow = FancyArrowPatch((x1, 1.40), (x2, 1.40),
+                                arrowstyle='-|>',
+                                mutation_scale=18,
+                                linewidth=2.5,
+                                color=edge_color, zorder=1)
         ax.add_patch(arrow)
 
-    # Background
-    bg_rect = Rectangle((0, 0), 18, 6, facecolor='white', edgecolor='none', zorder=0)
-    ax.add_patch(bg_rect)
-
-    plt.tight_layout()
-    plt.savefig('fig6_workflow.png', dpi=300, bbox_inches='tight',
-                facecolor='white', edgecolor='none')
+    plt.tight_layout(pad=0.1)
+    plt.savefig('fig6_workflow.png', dpi=300,
+                bbox_inches='tight', facecolor='white')
     plt.close()
-    print("✓ Generated fig6_workflow.png")
+    print("✓ fig6_workflow.png")
 
-# Main execution
-if __name__ == "__main__":
-    print("=" * 80)
-    print("GENERATING PROFESSIONAL IEEE-QUALITY FIGURES")
-    print("=" * 80)
 
+# ==================================================================
+if __name__ == '__main__':
+    print('Generating IEEE-sized figures (fonts render ≥8pt in paper)...')
     generate_fig1()
     generate_fig2()
     generate_fig3()
     generate_fig4()
     generate_fig5()
     generate_fig6()
-
-    print("=" * 80)
-    print("SUCCESS! All figures generated with professional enhancements:")
-    print("  ✓ Large fonts (18-22pt) - highly readable")
-    print("  ✓ Value labels on all bar charts")
-    print("  ✓ Legends with model names")
-    print("  ✓ Thick borders (2.5-4pt) - print quality")
-    print("  ✓ Professional color schemes")
-    print("  ✓ Shadows and depth on flowchart")
-    print("  ✓ 300 DPI resolution")
-    print("  ✓ Optimal sizing for IEEE publications")
-    print("=" * 80)
+    print('Done.')
